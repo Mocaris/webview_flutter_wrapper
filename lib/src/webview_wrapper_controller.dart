@@ -107,6 +107,7 @@ class WebviewWrapperController with WebviewWrapperMixin {
     return _controller.runJavaScript(javaScript);
   }
 
+  /// This method is compatible with calling the js function to return the promise type
   Future<Object> runJavaScriptReturningResult(String javaScript) {
     return _runJavaScriptReturningResult(javaScript);
   }

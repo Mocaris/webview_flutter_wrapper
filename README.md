@@ -2,14 +2,14 @@
 
 webview wrapper
 
-### Init WebviewWrapper
+### Init WebviewWrapperController
 ```dart
-
 final WebviewWrapperController controller = WebviewWrapperController();
 
     controller.setJavaScriptMode(JavaScriptMode.unrestricted);
 
       controller.addInjectJsObject([
+        /// call window event oninjectStartReady when inject complete
           InjectJsObject(
             object: "injectStart",
             injectionTime: InjectionTime.pageStart,
@@ -18,6 +18,7 @@ final WebviewWrapperController controller = WebviewWrapperController();
                 debugPrint("----------->>>injectStart.test: $data");
               }
           }),
+        /// call window event oninjectEndReady when inject complete
           InjectJsObject(
             object: "injectEnd",
             injectionTime: InjectionTime.pageEnd,
@@ -52,6 +53,11 @@ final WebviewWrapperController controller = WebviewWrapperController();
 function testJsCall(){
     injectClass.test("test");
 }
+
+/// native call js function
+/// example:
+/// final result= await controller.runJavaScriptReturningResult('testPromiseOk()');
+/// result is 'ok'
 function testPromiseOk(){
     return new Promise(function(resolve, reject) {
         resolve("ok");
