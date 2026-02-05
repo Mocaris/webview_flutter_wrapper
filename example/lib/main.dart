@@ -1,7 +1,4 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:webviwe_flutter_wrapper/webviwe_flutter_wrapper.dart';
 
 void main() {
@@ -21,6 +18,24 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    controller.addInjectJsObject([
+      InjectJsObject(
+          object: "injectStart",
+          injectionTime: InjectionTime.pageStart,
+          functions: {
+            "test": (data) {
+              debugPrint("----------->>>injectStart.test: $data");
+            }
+          }),
+      InjectJsObject(
+          object: "injectEnd",
+          injectionTime: InjectionTime.pageEnd,
+          functions: {
+            "test": (data) {
+              debugPrint("----------->>>injectEnd.test: $data");
+            }
+          }),
+    ]);
     controller.setJavaScriptMode(JavaScriptMode.unrestricted);
     controller.loadFlutterAsset("assets/test.html");
   }
@@ -39,16 +54,6 @@ class _MyAppState extends State<MyApp> {
                   child: WebviewWrapper(
                 controller: controller,
                 debuggingEnabled: true,
-                injectObjects: [
-                  InjectJsObject(
-                      object: "injectClass",
-                      injectionTime: InjectionTime.pageStart,
-                      functions: {
-                        "test": (data) {
-                          debugPrint("----------->>> $data");
-                        }
-                      }),
-                ],
               )),
               Wrap(
                 children: [

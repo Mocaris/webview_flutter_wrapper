@@ -8,7 +8,18 @@
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <script src='https://telegram.org/js/telegram-widget.js'></script>
     <script>
-
+        window.addEventListener('onPageStartScriptReady', function () {
+            console.log('onPageStartScriptReady')
+        });
+        window.addEventListener('onPageEndScriptReady', function () {
+            console.log('onPageEndScriptReady')
+        });
+        window.addEventListener('oninjectStartReady', function () {
+            console.log('oninjectStartReady')
+        });
+        window.addEventListener('oninjectEndReady', function () {
+            console.log('oninjectEndReady')
+        });
         function testPromiseOk() {
             return new Promise((resolve, reject) => {
                 setTimeout(() => {
@@ -31,12 +42,21 @@
             throw new Error('这是一个错误')
         }
 
+        function testInjectClassFunction() {
+            injectStart.test();
+        }
+
+        function testInjectEndClassFunction() {
+            injectEnd.test();
+        }
+
     </script>
 </head>
 
 <body>
-    <input type="button" onclick="testTg">测试</input>
+<input type="button" onclick="testInjectClassFunction()" value="调用 injectStart.test"/>
 
+<input type="button" onclick="testInjectEndClassFunction()" value="调用 injectEnd.test"/>
 </body>
 
-</html>>
+</html>

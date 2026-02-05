@@ -6,25 +6,48 @@ webview wrapper
 ```dart
 
 final WebviewWrapperController controller = WebviewWrapperController();
-  controller.setJavaScriptMode(JavaScriptMode.unrestricted);
+
+    controller.setJavaScriptMode(JavaScriptMode.unrestricted);
+
+      controller.addInjectJsObject([
+          InjectJsObject(
+            object: "injectStart",
+            injectionTime: InjectionTime.pageStart,
+            functions: {
+              "test": (data) {
+                debugPrint("----------->>>injectStart.test: $data");
+              }
+          }),
+          InjectJsObject(
+            object: "injectEnd",
+            injectionTime: InjectionTime.pageEnd,
+            functions: {
+            "test": (data) {
+              debugPrint("----------->>>injectEnd.test: $data");
+            }
+          }),
+      ]);
 /// add webviewwrapper to page
 /// you can add a list of InjectJsObject to inject js object to webview
-WebviewWrapper(
-    controller: controller,
-    debuggingEnabled: true,
-    injectObjects: [
-      InjectJsObject(
-        object: "injectClass",
-        injectionTime: InjectionTime.pageStart,
-        functions: {
-          "test": (data) {
-            debugPrint("----------->>> $data");
-          }
-        }),
-    ],
-)
+    WebviewWrapper(
+        controller: controller,
+        debuggingEnabled: true,
+    )
 ```
-js call native
+#### add js window event listener 
+```javascript
+// when page start script loaded complete
+ window.addEventListener('onPageStartScriptReady', function () {
+     alert('onPageStartScriptReady')
+ });
+
+// when page end script loaded complete
+ window.addEventListener('onPageEndScriptReady', function () {
+     alert('onPageEndScriptReady')
+ });
+```
+
+#### js call native
 ````javascript
 function testJsCall(){
     injectClass.test("test");
@@ -36,7 +59,7 @@ function testPromiseOk(){
 }
 
 ````
-navtive call js 
+#### navtive call js 
 ```dart
 /// call testPromiseOk function 
 /// js function return a promise, so you can use await to wait for the result 
@@ -44,7 +67,7 @@ navtive call js
 
 ```
 
-example:
+#### example:
 ````dart
 class _MyAppState extends State<MyApp> {
   final WebviewWrapperController controller = WebviewWrapperController();

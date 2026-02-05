@@ -1,16 +1,13 @@
 part of 'webview_wrapper.dart';
 
-///
+/// look at [WebViewController]
 /// @Author mocaris
 /// @Date 2026-02-04
 /// @Since
 
-const String _kPromiseHandleObject = "_webview_promise_handle";
-
-class WebviewWrapperController {
+class WebviewWrapperController with WebviewWrapperMixin {
+  @override
   final WebViewController _controller;
-
-  final _promiseCompleter = <String, Completer>{};
 
   WebviewWrapperController(
       {void Function(WebViewPermissionRequest request)? onPermissionRequest})
@@ -32,12 +29,13 @@ class WebviewWrapperController {
     void Function(WebViewPermissionRequest request)? onPermissionRequest,
   }) : _controller = WebViewController.fromPlatform(platform,
             onPermissionRequest: onPermissionRequest) {
-    _controller.addJavaScriptChannel(_kPromiseHandleObject,
+    _controller.addJavaScriptChannel(_kPromiseHandleJsObject,
         onMessageReceived: _handlePromiseMessage);
-  }
-
-  void _clearPreviousPromise() {
-    _promiseCompleter.clear();
+    _controller.addJavaScriptChannel(
+      _kWebviewHandleJsObject,
+      onMessageReceived: _parseInjectCallback,
+    );
+    _controller.setNavigationDelegate(_delegate);
   }
 
   Future<void> loadFile(String absoluteFilePath) {
@@ -92,8 +90,9 @@ class WebviewWrapperController {
     return _controller.reload();
   }
 
-  Future<void> setNavigationDelegate(NavigationDelegate delegate) {
-    return _controller.setNavigationDelegate(delegate);
+  void setNavigationDelegate(NavigationDelegateWrapper delegate) {
+    _delegateWrapper = delegate;
+    // return _controller.setNavigationDelegate(delegate);
   }
 
   Future<void> clearCache() {
@@ -116,7 +115,7 @@ class WebviewWrapperController {
     String name, {
     required void Function(JavaScriptMessage) onMessageReceived,
   }) {
-    assert(name != _kJsObject && name != _kPromiseHandleObject);
+    assert(name != _kWebviewHandleJsObject && name != _kPromiseHandleJsObject);
     return _controller.addJavaScriptChannel(
       name,
       onMessageReceived: onMessageReceived,
@@ -124,8 +123,8 @@ class WebviewWrapperController {
   }
 
   Future<void> removeJavaScriptChannel(String javaScriptChannelName) {
-    assert(javaScriptChannelName != _kJsObject &&
-        javaScriptChannelName != _kPromiseHandleObject);
+    assert(javaScriptChannelName != _kWebviewHandleJsObject &&
+        javaScriptChannelName != _kPromiseHandleJsObject);
     return _controller.removeJavaScriptChannel(javaScriptChannelName);
   }
 
@@ -166,81 +165,51 @@ class WebviewWrapperController {
     return _controller.setOnConsoleMessage(onConsoleMessage);
   }
 
+  Future<void> setOnJavaScriptAlertDialog(
+    Future<void> Function(JavaScriptAlertDialogRequest request)
+        onJavaScriptAlertDialog,
+  ) {
+    return _controller.setOnJavaScriptAlertDialog(onJavaScriptAlertDialog);
+  }
+
+  Future<void> setOnJavaScriptConfirmDialog(
+    Future<bool> Function(JavaScriptConfirmDialogRequest request)
+        onJavaScriptConfirmDialog,
+  ) {
+    return _controller.setOnJavaScriptConfirmDialog(onJavaScriptConfirmDialog);
+  }
+
+  Future<void> setOnJavaScriptTextInputDialog(
+    Future<String> Function(JavaScriptTextInputDialogRequest request)
+        onJavaScriptTextInputDialog,
+  ) {
+    return _controller
+        .setOnJavaScriptTextInputDialog(onJavaScriptTextInputDialog);
+  }
+
   Future<String?> getUserAgent() {
     return _controller.getUserAgent();
   }
-}
 
-extension WebviewWrapperControllerExt on WebviewWrapperController {
-  void _handlePromiseMessage(JavaScriptMessage message) {
-    String? funcId;
-    try {
-      var callData = jsonDecode(message.message) as Map<String, dynamic>;
-      funcId = callData["funcId"];
-      var completer = _promiseCompleter[funcId];
-      if (null == completer) {
-        return;
-      }
-      var error = callData["error"];
-      try {
-        error = jsonDecode(error);
-      } catch (e) {}
-      if (null != error) {
-        completer.completeError(error);
-        return;
-      }
-      var result = callData["result"];
-      try {
-        result = jsonDecode(result);
-      } catch (e) {}
-      if (null != result) {
-        completer.complete(result);
-      } else {
-        // return  void
-        completer.complete();
-      }
-    } catch (e, s) {
-      debugPrintStack(label: e.toString(), stackTrace: s);
-    } finally {
-      if (funcId != null) {
-        _promiseCompleter.remove(funcId);
-      }
-    }
+  Future<void> setOnScrollPositionChange(
+    void Function(ScrollPositionChange change)? onScrollPositionChange,
+  ) {
+    return _controller.setOnScrollPositionChange(onScrollPositionChange);
   }
 
-  Future<Object> _runJavaScriptReturningResult(String javaScript) {
-    final funcId = "native_completer_${DateTime.now().millisecondsSinceEpoch}";
-    final completer = _promiseCompleter[funcId] = Completer<Object>();
-    final javaScriptSource = """
- try{
-    var result = (function(){return $javaScript;})();
-    // check result is promise
-    if(result instanceof Promise){
-      result.then(function(result){
-        ${_kPromiseHandleObject}.postMessage(JSON.stringify({
-          "funcId": "$funcId",
-          "result": result
-        }));
-      }, function(error){
-       ${_kPromiseHandleObject}.postMessage(JSON.stringify({
-          "funcId": "$funcId",
-          "error": JSON.stringify(error)
-        }));
-      });
-    }else{
-       ${_kPromiseHandleObject}.postMessage(JSON.stringify({
-          "funcId": "$funcId",
-          "result": result
-        }));
-    }
- }catch(e){
-    ${_kPromiseHandleObject}.postMessage(JSON.stringify({
-      "funcId": "$funcId",
-      "error":  e.message,
-    }));
- }
-    """;
-    _controller.runJavaScript(javaScriptSource);
-    return completer.future;
+  Future<void> setVerticalScrollBarEnabled(bool enabled) {
+    return _controller.setVerticalScrollBarEnabled(enabled);
+  }
+
+  Future<void> setHorizontalScrollBarEnabled(bool enabled) {
+    return _controller.setHorizontalScrollBarEnabled(enabled);
+  }
+
+  Future<bool> supportsSetScrollBarsEnabled() async {
+    return _controller.supportsSetScrollBarsEnabled();
+  }
+
+  Future<void> setOverScrollMode(WebViewOverScrollMode mode) async {
+    return _controller.setOverScrollMode(mode);
   }
 }

@@ -99,3 +99,5 @@ google-services.json
 # Android Profiling
 *.hprof
 
+# FVM Version Cache
+.fvm/
