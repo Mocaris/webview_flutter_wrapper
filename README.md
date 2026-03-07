@@ -37,12 +37,25 @@ final WebviewWrapperController controller = WebviewWrapperController();
 ```
 #### add js window event listener 
 ```javascript
-// when page start script loaded complete
+// when injectStart object script loaded complete
+window.addEventListener('oninjectStartReady', function () {
+    alert('oninjectStartReady')
+});
+
+
+// when injectEnd object script loaded complete
+window.addEventListener('oninjectEndReady', function () {
+    alert('oninjectEndReady')
+});
+
+
+
+// when page load start all script loaded complete
  window.addEventListener('onPageStartScriptReady', function () {
      alert('onPageStartScriptReady')
  });
 
-// when page end script loaded complete
+// when page load end all script loaded complete
  window.addEventListener('onPageEndScriptReady', function () {
      alert('onPageEndScriptReady')
  });
@@ -161,7 +174,49 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-
-
-
 ````
+
+js example:
+```javascript
+  window.addEventListener('onPageStartScriptReady', function () {
+            console.log('onPageStartScriptReady')
+        });
+        window.addEventListener('onPageEndScriptReady', function () {
+            console.log('onPageEndScriptReady')
+        });
+        window.addEventListener('oninjectStartReady', function () {
+            console.log('oninjectStartReady')
+        });
+        window.addEventListener('oninjectEndReady', function () {
+            console.log('oninjectEndReady')
+        });
+        function testPromiseOk() {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    resolve('promise 成功')
+                }, 1000)
+            })
+        }
+        function testPromiseError() {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    reject('promise 失败')
+                }, 1000)
+            })
+        }
+        function testNormal() {
+            return "这是一个普通函数";
+        }
+
+        function testError() {
+            throw new Error('这是一个错误')
+        }
+
+        function testInjectClassFunction() {
+            injectStart.test();
+        }
+
+        function testInjectEndClassFunction() {
+            injectEnd.test();
+        }
+```

@@ -35,7 +35,7 @@ class WebviewWrapperController with WebviewWrapperMixin {
       _kWebviewHandleJsObject,
       onMessageReceived: _parseInjectCallback,
     );
-    _controller.setNavigationDelegate(_delegate);
+    _controller.setNavigationDelegate(_createNavigationDelegate());
   }
 
   Future<void> loadFile(String absoluteFilePath) {
@@ -91,8 +91,8 @@ class WebviewWrapperController with WebviewWrapperMixin {
   }
 
   void setNavigationDelegate(NavigationDelegateWrapper delegate) {
-    _delegateWrapper = delegate;
-    // return _controller.setNavigationDelegate(delegate);
+    _controller
+        .setNavigationDelegate(_createNavigationDelegate(wrapper: delegate));
   }
 
   Future<void> clearCache() {

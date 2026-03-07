@@ -53,6 +53,7 @@ class WebviewWrapperState extends State<WebviewWrapper> {
 
   @override
   void dispose() {
+    widget.controller._clearPreviousPromise();
     super.dispose();
   }
 
