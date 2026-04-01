@@ -51,7 +51,7 @@ class _MyAppState extends State<MyApp> {
           child: Column(
             children: [
               Expanded(
-                  child: WebviewWrapper(
+                  child: WebviewWrapperWidget(
                 controller: controller,
                 debuggingEnabled: true,
               )),

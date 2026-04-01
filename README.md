@@ -13,6 +13,7 @@ final WebviewWrapperController controller = WebviewWrapperController();
           InjectJsObject(
             object: "injectStart",
             injectionTime: InjectionTime.pageStart,
+            injectJsScript:"console.log('injectStart');"
             functions: {
               "test": (data) {
                 debugPrint("----------->>>injectStart.test: $data");
@@ -22,6 +23,7 @@ final WebviewWrapperController controller = WebviewWrapperController();
           InjectJsObject(
             object: "injectEnd",
             injectionTime: InjectionTime.pageEnd,
+            injectJsScript:"console.log('injectEnd');"
             functions: {
             "test": (data) {
               debugPrint("----------->>>injectEnd.test: $data");
@@ -30,7 +32,7 @@ final WebviewWrapperController controller = WebviewWrapperController();
       ]);
 /// add webviewwrapper to page
 /// you can add a list of InjectJsObject to inject js object to webview
-    WebviewWrapper(
+    WebviewWrapperWidget(
         controller: controller,
         debuggingEnabled: true,
     )
@@ -109,7 +111,7 @@ class _MyAppState extends State<MyApp> {
           child: Column(
             children: [
               Expanded(
-                  child: WebviewWrapper(
+                  child: WebviewWrapperWidget(
                 controller: controller,
                 debuggingEnabled: true,
                 injectObjects: [

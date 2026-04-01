@@ -2,21 +2,21 @@
 /// @Author mocaris
 /// @Date 2026-02-05
 /// @Since
-part of '../webview_wrapper.dart';
+part of '../webview_wrapper_widget.dart';
 
 ///js 脚本页面开始注入后事件
-const String _onPageStartScriptReadyEvent = "onPageStartScriptReady";
+const String kOnPageStartScriptReadyEvent = "onPageStartScriptReady";
 
 ///js 脚本页面结束注入后事件
-const String _onPageEndScriptReadyEvent = "onPageEndScriptReady";
+const String kOnPageEndScriptReadyEvent = "onPageEndScriptReady";
 
 ///处理 js 回调
-const String _kWebviewHandleJsObject = "_webview_wrapper_bridge";
+const String kWebviewHandleJsObject = "_webview_wrapper_bridge";
 
 ///处理 promise 回调
-const String _kPromiseHandleJsObject = "_webview_wrapper_promise_bridge";
+const String kPromiseHandleJsObject = "_webview_wrapper_promise_bridge";
 
-mixin class WebviewWrapperMixin {
+mixin class WebviewControllerHandleMixin {
   late final WebViewController _controller;
   final _promiseCompleter = <String, Completer>{};
   List<InjectJsObject> _injectObjects = [];
@@ -56,16 +56,17 @@ mixin class WebviewWrapperMixin {
     var startList =
         _injectObjects.where((e) => e.injectionTime == InjectionTime.pageStart);
     var startInjectObjectJs = startList.map((e) {
-      return _generateInjectJs(e);
+      return InjectJsUtil.generateInjectJs(e);
     }).join("\n");
-    _startInjectSource = _generatePageStartInjectJs(startInjectObjectJs);
+    _startInjectSource =
+        InjectJsUtil.generatePageStartInjectJs(startInjectObjectJs);
 
     var endList =
         _injectObjects.where((e) => e.injectionTime == InjectionTime.pageEnd);
     var endInjectObjectJs = endList.map((e) {
-      return _generateInjectJs(e);
+      return InjectJsUtil.generateInjectJs(e);
     }).join("\n");
-    _endInjectSource = _generatePageEndInjectJs(endInjectObjectJs);
+    _endInjectSource = InjectJsUtil.generatePageEndInjectJs(endInjectObjectJs);
   }
 
   void _injectStartJs() {
@@ -136,24 +137,24 @@ mixin class WebviewWrapperMixin {
     // check result is promise
     if(result instanceof Promise){
       result.then(function(result){
-        $_kPromiseHandleJsObject.postMessage(JSON.stringify({
+        $kPromiseHandleJsObject.postMessage(JSON.stringify({
           "funcId": "$funcId",
           "result": result
         }));
       }, function(error){
-       $_kPromiseHandleJsObject.postMessage(JSON.stringify({
+       $kPromiseHandleJsObject.postMessage(JSON.stringify({
           "funcId": "$funcId",
           "error": JSON.stringify(error)
         }));
       });
     }else{
-       $_kPromiseHandleJsObject.postMessage(JSON.stringify({
+       $kPromiseHandleJsObject.postMessage(JSON.stringify({
           "funcId": "$funcId",
           "result": result
         }));
     }
  }catch(e){
-    $_kPromiseHandleJsObject.postMessage(JSON.stringify({
+    $kPromiseHandleJsObject.postMessage(JSON.stringify({
       "funcId": "$funcId",
       "error":  e.message,
     }));
@@ -190,52 +191,4 @@ mixin class WebviewWrapperMixin {
       debugPrintStack(label: e.toString(), stackTrace: s);
     }
   }
-}
-
-/// 生成注入的js
-/// 注入完成后触发on${e.object}Ready事件
-String _generateInjectJs(InjectJsObject e) {
-  final methods = e.functions.entries
-      .map((t) =>
-          "${t.key}: function (params) {return _${e.object}_callNative('${t.key}',params);}")
-      .join(",\n");
-
-  return """
-    if(window.${e.object} == undefined) {
-       function _${e.object}_callNative(method, params) {
-         return $_kWebviewHandleJsObject.postMessage(JSON.stringify({'object': '${e.object}', 'method': method, 'params': params }));
-       };
-      ${e.object} =  {
-        $methods
-      }
-      window.${e.object} = ${e.object};
-      window.dispatchEvent(new CustomEvent('on${e.object}Ready'));
-    }
-      """;
-}
-
-/// 生成页面开始注入的js
-/// 注入完成后触发onPageStartScriptReady事件
-String _generatePageStartInjectJs(String source) {
-  return """
-        (function () {
-            if(window.__WRAPPER_INJECT_START__) return;
-            window.__WRAPPER_INJECT_START__ = true;
-            $source
-            window.dispatchEvent(new CustomEvent('$_onPageStartScriptReadyEvent'));
-        })();
-    """;
-}
-
-/// 生成页面结束注入的js
-/// 注入完成后触发onPageEndScriptReady事件
-String _generatePageEndInjectJs(String source) {
-  return """
-        (function () {
-            if(window.__WRAPPER_INJECT_END__) return;
-            window.__WRAPPER_INJECT_END__ = true;
-            $source
-            window.dispatchEvent(new CustomEvent('$_onPageEndScriptReadyEvent'));
-        })();
-    """;
 }
