@@ -1,4 +1,4 @@
-import 'package:webviwe_flutter_wrapper/webviwe_flutter_wrapper.dart';
+import 'package:webview_flutter_wrapper/webview_flutter_wrapper.dart';
 
 ///
 /// @Author mocaris

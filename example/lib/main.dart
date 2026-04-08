@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:webviwe_flutter_wrapper/webviwe_flutter_wrapper.dart';
+import 'package:webview_flutter_wrapper/webview_flutter_wrapper.dart';
 
 void main() {
   runApp(const MyApp());

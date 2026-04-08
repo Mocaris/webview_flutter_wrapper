@@ -8,7 +8,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
-import 'package:webviwe_flutter_wrapper/src/utils/inject_js_util.dart';
+import 'package:webview_flutter_wrapper/src/utils/inject_js_util.dart';
 
 import 'navigation_delegate_wrapper.dart';
 import 'webview_inject_object.dart';

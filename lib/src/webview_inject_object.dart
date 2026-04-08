@@ -1,4 +1,4 @@
-import 'package:webviwe_flutter_wrapper/src/utils/inject_js_util.dart';
+import 'package:webview_flutter_wrapper/src/utils/inject_js_util.dart';
 
 ///
 /// @Author mocaris

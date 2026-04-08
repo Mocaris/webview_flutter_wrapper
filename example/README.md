@@ -1,6 +1,6 @@
-# webviwe_flutter_wrapper_example
+# webview_flutter_wrapper_example
 
-Demonstrates how to use the webviwe_flutter_wrapper plugin.
+Demonstrates how to use the webview_flutter_wrapper plugin.
 
 ## Getting Started
 

@@ -1,7 +1,7 @@
-name: webviwe_flutter_wrapper
+name: webview_flutter_wrapper
 description: "webview wrapper"
-version: 0.0.6
-homepage: 'https://github.com/Mocaris/webviwe_flutter_wrapper'
+version: 0.0.1
+homepage: 'https://github.com/Mocaris/webview_flutter_wrapper'
 
 environment:
   sdk: ^3.6.0
@@ -39,7 +39,7 @@ flutter:
 #  plugin:
 #    platforms:
 #      android:
-#        package: com.example.webviwe_flutter_wrapper
+#        package: com.example.webview_flutter_wrapper
 #        pluginClass: WebviweFlutterWrapperPlugin
 
 # To add assets to your plugin package, add an assets section, like this:
