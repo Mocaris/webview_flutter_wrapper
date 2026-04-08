@@ -17,13 +17,6 @@ Ideal for scenarios requiring embedded H5 pages in Flutter apps with complex int
 
 ---
 
-Concise version (for pub.dev description):
-
-> A powerful Flutter WebView wrapper with intelligent JavaScript injection, bidirectional communication, and Promise support. Enables seamless Native-JS interaction with flexible injection timing control.
-
-
-
-
 ## How to use？
 
 ### Init WebviewWrapperController

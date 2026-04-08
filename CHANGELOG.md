@@ -1,5 +1,13 @@
 # Version History
 
+## 0.0.6
+
+* update readme and changelog 
+
+## 0.0.5
+
+* adjustment WebviewWrapperController api 
+
 ## 0.0.4
 
 * adjustment WebviewWrapperController api
