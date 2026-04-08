@@ -1,6 +1,30 @@
-# webviwe_flutter_wrapper
+# webview_flutter_wrapper
 
-webview wrapper
+
+A powerful Flutter WebView wrapper plugin that provides convenient JavaScript injection and bidirectional communication capabilities.
+
+### Key Features
+
+- **Smart JS Injection**: Automatically inject JavaScript objects at two timing points - page load start (pageStart) and page load end (pageEnd)
+- **Bidirectional Communication**: Seamless Native ↔ JavaScript calls with Promise async support
+- **Lifecycle Events**: Provides `onPageStartScriptReady`, `onPageEndScriptReady` and other events for precise injection timing control
+- **Promise Compatible**: Native JavaScript Promise support, `runJavaScriptReturningResult` can directly await async functions
+- **Flexible Management**: Support dynamic add, remove, and clear injected objects to meet different scenario requirements
+
+### Use Cases
+
+Ideal for scenarios requiring embedded H5 pages in Flutter apps with complex interactions, such as hybrid development, H5 feature extension, and JS Bridge communication.
+
+---
+
+Concise version (for pub.dev description):
+
+> A powerful Flutter WebView wrapper with intelligent JavaScript injection, bidirectional communication, and Promise support. Enables seamless Native-JS interaction with flexible injection timing control.
+
+
+
+
+## How to use？
 
 ### Init WebviewWrapperController
 ```dart

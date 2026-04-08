@@ -39,6 +39,7 @@ class WebviewWrapperController extends WebViewController
 
   @Deprecated('Use setNavigationDelegateWrapper instead')
   @override
+  @protected
   Future<void> setNavigationDelegate(NavigationDelegate delegate) {
     return super.setNavigationDelegate(delegate);
   }
@@ -72,5 +73,40 @@ class WebviewWrapperController extends WebViewController
     assert(javaScriptChannelName != kWebviewHandleJsObject &&
         javaScriptChannelName != kPromiseHandleJsObject);
     return super.removeJavaScriptChannel(javaScriptChannelName);
+  }
+
+  /// add inject js object
+  void addInjectJsObjectList(List<InjectJsObject> list) {
+    _injectManager.addInjectJsObjectList(list: list);
+  }
+
+  /// assign all inject js object
+  void assignAllInjectJsObject(List<InjectJsObject> list) {
+    _injectManager.assignAllInjectJsObject(list: list);
+  }
+
+  /// remove inject js object
+  void removeInjectJsObject(InjectJsObject object) {
+    _injectManager.removeInjectJsObject(object: object);
+  }
+
+  /// remove inject js object by name
+  void removeInjectJsObjectByName(String objectName) {
+    _injectManager.removeInjectJsObjectByName(objectName: objectName);
+  }
+
+  /// clear inject js object
+  void clearInjectJsObject() {
+    _injectManager.clearInjectJsObject();
+  }
+
+  /// clear start inject js object
+  void clearStartInjectJsObject() {
+    _injectManager.clearStartInjectJsObject();
+  }
+
+  /// clear end inject js object
+  void clearEndInjectJsObject() {
+    _injectManager.clearEndInjectJsObject();
   }
 }

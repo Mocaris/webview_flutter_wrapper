@@ -43,34 +43,6 @@ mixin WebviewControllerHandleMixin on WebViewController {
     );
   }
 
-  void addInjectJsObjectList(List<InjectJsObject> list) {
-    _injectManager.addInjectJsObjectList(list: list);
-  }
-
-  void assignAllInjectJsObject(List<InjectJsObject> list) {
-    _injectManager.assignAllInjectJsObject(list: list);
-  }
-
-  void removeInjectJsObject(InjectJsObject object) {
-    _injectManager.removeInjectJsObject(object: object);
-  }
-
-  void removeInjectJsObjectByName(String objectName) {
-    _injectManager.removeInjectJsObjectByName(objectName: objectName);
-  }
-
-  void clearInjectJsObject() {
-    _injectManager.clearInjectJsObject();
-  }
-
-  void clearStartInjectJsObject() {
-    _injectManager.clearStartInjectJsObject();
-  }
-
-  void clearEndInjectJsObject() {
-    _injectManager.clearEndInjectJsObject();
-  }
-
   void _injectStartJs() {
     var injectJsScript = _injectManager.startInjectJsScript;
     if (_injectManager.startInjectJsScript.isNotEmpty) {
