@@ -1,6 +1,6 @@
 name: webviwe_flutter_wrapper
 description: "webview wrapper"
-version: 0.0.3
+version: 0.0.4
 homepage: 'https://github.com/Mocaris/webviwe_flutter_wrapper'
 
 environment:
@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  webview_flutter: ^4.12.0
+  webview_flutter: ^4.13.0
   webview_flutter_android: any
   webview_flutter_wkwebview: any
   webview_flutter_platform_interface: any

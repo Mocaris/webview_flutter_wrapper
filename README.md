@@ -8,10 +8,10 @@ final WebviewWrapperController controller = WebviewWrapperController();
 
     controller.setJavaScriptMode(JavaScriptMode.unrestricted);
 
-      controller.addInjectJsObject([
+      controller.addInjectJsObjectList([
         /// call window event oninjectStartReady when inject complete
           InjectJsObject(
-            object: "injectStart",
+            name: "injectStart",
             injectionTime: InjectionTime.pageStart,
             injectJsScript:"console.log('injectStart');"
             functions: {
@@ -21,7 +21,7 @@ final WebviewWrapperController controller = WebviewWrapperController();
           }),
         /// call window event oninjectEndReady when inject complete
           InjectJsObject(
-            object: "injectEnd",
+            name: "injectEnd",
             injectionTime: InjectionTime.pageEnd,
             injectJsScript:"console.log('injectEnd');"
             functions: {

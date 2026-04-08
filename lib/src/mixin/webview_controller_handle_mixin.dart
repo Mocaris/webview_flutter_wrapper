@@ -16,14 +16,10 @@ const String kWebviewHandleJsObject = "_webview_wrapper_bridge";
 ///处理 promise 回调
 const String kPromiseHandleJsObject = "_webview_wrapper_promise_bridge";
 
-mixin class WebviewControllerHandleMixin {
-  late final WebViewController _controller;
-  final _promiseCompleter = <String, Completer>{};
-  List<InjectJsObject> _injectObjects = [];
-  String _startInjectSource = "";
-  String _endInjectSource = "";
-
-  PlatformWebViewController get platform => _controller.platform;
+mixin WebviewControllerHandleMixin on WebViewController {
+  var _completerFunCount = 0;
+  final _promiseCompleterCache = <String, Completer>{};
+  final _injectManager = InjectObjectManager();
 
   NavigationDelegate _createNavigationDelegate(
       {NavigationDelegateWrapper? wrapper}) {
@@ -31,15 +27,11 @@ mixin class WebviewControllerHandleMixin {
       onNavigationRequest: wrapper?.onNavigationRequest,
       onPageStarted: (url) {
         _clearPreviousPromise();
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          _injectStartJs();
-        });
+        _injectStartJs();
         wrapper?.onPageStarted?.call(url);
       },
       onPageFinished: (url) async {
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          _injectEndJs();
-        });
+        _injectEndJs();
         wrapper?.onPageFinished?.call(url);
       },
       onProgress: wrapper?.onProgress,
@@ -47,47 +39,59 @@ mixin class WebviewControllerHandleMixin {
       onUrlChange: wrapper?.onUrlChange,
       onHttpAuthRequest: wrapper?.onHttpAuthRequest,
       onHttpError: wrapper?.onHttpError,
-      // onSslAuthError: wrapper?.onSslAuthError,
+      onSslAuthError: wrapper?.onSslAuthError,
     );
   }
 
-  void addInjectJsObject(List<InjectJsObject> list) {
-    _injectObjects = list;
-    var startList =
-        _injectObjects.where((e) => e.injectionTime == InjectionTime.pageStart);
-    var startInjectObjectJs = startList.map((e) {
-      return InjectJsUtil.generateInjectJs(e);
-    }).join("\n");
-    _startInjectSource =
-        InjectJsUtil.generatePageStartInjectJs(startInjectObjectJs);
+  void addInjectJsObjectList(List<InjectJsObject> list) {
+    _injectManager.addInjectJsObjectList(list: list);
+  }
 
-    var endList =
-        _injectObjects.where((e) => e.injectionTime == InjectionTime.pageEnd);
-    var endInjectObjectJs = endList.map((e) {
-      return InjectJsUtil.generateInjectJs(e);
-    }).join("\n");
-    _endInjectSource = InjectJsUtil.generatePageEndInjectJs(endInjectObjectJs);
+  void assignAllInjectJsObject(List<InjectJsObject> list) {
+    _injectManager.assignAllInjectJsObject(list: list);
+  }
+
+  void removeInjectJsObject(InjectJsObject object) {
+    _injectManager.removeInjectJsObject(object: object);
+  }
+
+  void removeInjectJsObjectByName(String objectName) {
+    _injectManager.removeInjectJsObjectByName(objectName: objectName);
+  }
+
+  void clearInjectJsObject() {
+    _injectManager.clearInjectJsObject();
+  }
+
+  void clearStartInjectJsObject() {
+    _injectManager.clearStartInjectJsObject();
+  }
+
+  void clearEndInjectJsObject() {
+    _injectManager.clearEndInjectJsObject();
   }
 
   void _injectStartJs() {
-    if (_startInjectSource.isNotEmpty) {
-      _controller.runJavaScript(_startInjectSource);
+    var injectJsScript = _injectManager.startInjectJsScript;
+    if (_injectManager.startInjectJsScript.isNotEmpty) {
+      super.runJavaScript(injectJsScript);
     }
   }
 
   void _injectEndJs() {
-    if (_endInjectSource.isNotEmpty) {
-      _controller.runJavaScript(_endInjectSource);
+    if (_injectManager.endInjectJsScript.isNotEmpty) {
+      super.runJavaScript(_injectManager.endInjectJsScript);
     }
   }
 
   void _clearPreviousPromise() {
-    for (var completer in _promiseCompleter.values) {
+    _completerFunCount = 0;
+    for (var completer in _promiseCompleterCache.values) {
       if (!completer.isCompleted) {
         completer.completeError("promise timeout");
       }
     }
-    _promiseCompleter.clear();
+    _promiseCompleterCache.clear();
   }
 
   /// 处理 promise 回调
@@ -96,25 +100,33 @@ mixin class WebviewControllerHandleMixin {
     try {
       var callData = jsonDecode(message.message) as Map<String, dynamic>;
       funcId = callData["funcId"];
-      var completer = _promiseCompleter[funcId];
+      var completer = _promiseCompleterCache[funcId];
       if (null == completer) {
         return;
       }
-      var error = callData["error"];
-      try {
-        error = jsonDecode(error);
-      } catch (e) {}
-      if (null != error) {
-        completer.completeError(error);
+      var result = callData["result"];
+      if (null != result) {
+        try {
+          result = jsonDecode(result);
+        } catch (e) {}
+        completer.complete(result);
         return;
       }
-      var result = callData["result"];
-      try {
-        result = jsonDecode(result);
-      } catch (e) {}
-      if (null != result) {
-        completer.complete(result);
-      } else {
+      var error = callData["error"];
+      if (null != error) {
+        try {
+          error = jsonDecode(error);
+        } catch (e) {}
+        if (error is Map) {
+          completer.completeError(
+            error["message"] ?? '',
+            StackTrace.fromString(error["stack"] ?? ""),
+          );
+        } else {
+          completer.completeError(error);
+        }
+      }
+      if (!completer.isCompleted) {
         // return  void
         completer.complete();
       }
@@ -122,51 +134,25 @@ mixin class WebviewControllerHandleMixin {
       debugPrintStack(label: e.toString(), stackTrace: s);
     } finally {
       if (funcId != null) {
-        _promiseCompleter.remove(funcId);
+        _promiseCompleterCache.remove(funcId);
       }
     }
   }
 
   /// 执行 js 并返回结果  支持 promise
   Future<Object> _runJavaScriptReturningResult(String javaScript) {
-    final funcId = "native_completer_${DateTime.now().millisecondsSinceEpoch}";
-    final completer = _promiseCompleter[funcId] = Completer<Object>();
-    final javaScriptSource = """
- try{
-    var result = (function(){return $javaScript;})();
-    // check result is promise
-    if(result instanceof Promise){
-      result.then(function(result){
-        $kPromiseHandleJsObject.postMessage(JSON.stringify({
-          "funcId": "$funcId",
-          "result": result
-        }));
-      }, function(error){
-       $kPromiseHandleJsObject.postMessage(JSON.stringify({
-          "funcId": "$funcId",
-          "error": JSON.stringify(error)
-        }));
-      });
-    }else{
-       $kPromiseHandleJsObject.postMessage(JSON.stringify({
-          "funcId": "$funcId",
-          "result": result
-        }));
-    }
- }catch(e){
-    $kPromiseHandleJsObject.postMessage(JSON.stringify({
-      "funcId": "$funcId",
-      "error":  e.message,
-    }));
- }
-    """;
-    _controller.runJavaScript(javaScriptSource);
+    final funcId =
+        "${DateTime.now().millisecondsSinceEpoch}_${++_completerFunCount}";
+    final completer = _promiseCompleterCache[funcId] = Completer<Object>();
+    final javaScriptSource = InjectJsUtil.generateRunJsPromise(
+        funcId: funcId, javaScript: javaScript);
+    platform.runJavaScript(javaScriptSource);
     return completer.future;
   }
 
   void _parseInjectCallback(JavaScriptMessage message) async {
     try {
-      final injectList = _injectObjects;
+      final injectList = _injectManager.injectObjects;
       var callData = jsonDecode(message.message) as Map<String, dynamic>;
       final object = callData['object'];
       if (null == object) {
@@ -178,7 +164,7 @@ mixin class WebviewControllerHandleMixin {
       }
       var param = callData['params'];
       for (var inject in injectList) {
-        if (inject.object != object) {
+        if (inject.name != object) {
           continue;
         }
         final callback = inject.functions[method];

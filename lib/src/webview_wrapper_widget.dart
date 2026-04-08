@@ -61,7 +61,7 @@ class WebviewWrapperWidgetState extends State<WebviewWrapperWidget> {
   @override
   Widget build(BuildContext context) {
     return WebViewWidget(
-      controller: widget.controller._controller,
+      controller: widget.controller,
       layoutDirection: widget.layoutDirection,
       gestureRecognizers: widget.gestureRecognizers,
     );

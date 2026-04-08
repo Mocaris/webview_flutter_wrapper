@@ -19,7 +19,7 @@ class NavigationDelegateWrapper extends NavigationDelegate {
     void Function(HttpAuthRequest request)? onHttpAuthRequest,
     void Function(HttpResponseError error)? onHttpError,
     // since 4.13.0
-    // void Function(SslAuthError request)? onSslAuthError,
+    void Function(SslAuthError request)? onSslAuthError,
   }) : this.fromPlatformCreationParams(
           const PlatformNavigationDelegateCreationParams(),
           onNavigationRequest: onNavigationRequest,
@@ -30,7 +30,7 @@ class NavigationDelegateWrapper extends NavigationDelegate {
           onUrlChange: onUrlChange,
           onHttpAuthRequest: onHttpAuthRequest,
           onHttpError: onHttpError,
-          // onSslAuthError: onSslAuthError,
+          onSslAuthError: onSslAuthError,
         );
 
   NavigationDelegateWrapper.fromPlatformCreationParams(
@@ -44,7 +44,7 @@ class NavigationDelegateWrapper extends NavigationDelegate {
     void Function(UrlChange change)? onUrlChange,
     void Function(HttpAuthRequest request)? onHttpAuthRequest,
     void Function(HttpResponseError error)? onHttpError,
-    // void Function(SslAuthError request)? onSslAuthError,
+    void Function(SslAuthError request)? onSslAuthError,
   }) : this.fromPlatform(
           PlatformNavigationDelegate(params),
           onNavigationRequest: onNavigationRequest,
@@ -55,12 +55,12 @@ class NavigationDelegateWrapper extends NavigationDelegate {
           onUrlChange: onUrlChange,
           onHttpAuthRequest: onHttpAuthRequest,
           onHttpError: onHttpError,
-          // onSslAuthError: onSslAuthError,
+          onSslAuthError: onSslAuthError,
         );
   final void Function(UrlChange change)? onUrlChange;
   final HttpAuthRequestCallback? onHttpAuthRequest;
   final void Function(HttpResponseError error)? onHttpError;
-  // final void Function(SslAuthError request)? onSslAuthError;
+  final void Function(SslAuthError request)? onSslAuthError;
 
   NavigationDelegateWrapper.fromPlatform(
     super.platform, {
@@ -72,11 +72,11 @@ class NavigationDelegateWrapper extends NavigationDelegate {
     this.onUrlChange,
     this.onHttpAuthRequest,
     this.onHttpError,
-    // this.onSslAuthError,
+    this.onSslAuthError,
   }) : super.fromPlatform(
           onUrlChange: onUrlChange,
           onHttpAuthRequest: onHttpAuthRequest,
           onHttpError: onHttpError,
-          // onSslAuthError: onSslAuthError,
+          onSslAuthError: onSslAuthError,
         );
 }

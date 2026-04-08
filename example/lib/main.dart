@@ -18,17 +18,22 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    controller.addInjectJsObject([
+    controller.addInjectJsObjectList([
       InjectJsObject(
-          object: "injectStart",
+          name: "injectStart",
           injectionTime: InjectionTime.pageStart,
+          injectJsScript: "console.log('start run injectStart');",
           functions: {
             "test": (data) {
+              debugPrint(
+                  "----------->>>injectStart.test: $data, ${data.runtimeType}");
+            },
+            "test1": (data) {
               debugPrint("----------->>>injectStart.test: $data");
             }
           }),
       InjectJsObject(
-          object: "injectEnd",
+          name: "injectEnd",
           injectionTime: InjectionTime.pageEnd,
           functions: {
             "test": (data) {
@@ -79,8 +84,9 @@ class _MyAppState extends State<MyApp> {
                         final result = await controller
                             .runJavaScriptReturningResult("testPromiseError()");
                         debugPrint("testPromiseError----->>>$result");
-                      } catch (e) {
-                        debugPrint("testPromiseError----->>>error $e");
+                      } catch (e, s) {
+                        debugPrint(
+                            "testPromiseError----->>>error $e, stack: $s");
                       }
                     },
                     child: const Text("testPromiseError"),
@@ -91,8 +97,8 @@ class _MyAppState extends State<MyApp> {
                         final result = await controller
                             .runJavaScriptReturningResult("testError()");
                         debugPrint("testError----->>>$result");
-                      } catch (e) {
-                        debugPrint("testError----->>>error $e");
+                      } catch (e, s) {
+                        debugPrint("testError----->>>error $e, stack: $s");
                       }
                     },
                     child: const Text("testError"),
