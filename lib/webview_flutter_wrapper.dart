@@ -1,3 +1,4 @@
+// ignore: unnecessary_library_name
 library webview_flutter_wrapper;
 
 export 'package:webview_flutter/webview_flutter.dart';

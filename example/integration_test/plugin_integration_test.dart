@@ -6,8 +6,6 @@
 // For more information about Flutter integration tests, please see
 // https://flutter.dev/to/integration-testing
 
-import 'package:webview_flutter_wrapper/webview_flutter_wrapper.dart';
-
 void main() {
   // IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   //

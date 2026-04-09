@@ -80,6 +80,7 @@ mixin WebviewControllerHandleMixin on WebViewController {
       if (null != result) {
         try {
           result = jsonDecode(result);
+        // ignore: empty_catches
         } catch (e) {}
         completer.complete(result);
         return;
@@ -88,6 +89,7 @@ mixin WebviewControllerHandleMixin on WebViewController {
       if (null != error) {
         try {
           error = jsonDecode(error);
+        // ignore: empty_catches
         } catch (e) {}
         if (error is Map) {
           completer.completeError(
