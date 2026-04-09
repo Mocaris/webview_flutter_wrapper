@@ -20,7 +20,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     controller.addInjectJsObjectList([
       InjectJsObject(
-          name: "injectStart",
+          name: "InjectStart",
           injectionTime: InjectionTime.pageStart,
           injectJsScript: "console.log('start run injectStart');",
           functions: {
@@ -33,8 +33,9 @@ class _MyAppState extends State<MyApp> {
             }
           }),
       InjectJsObject(
-          name: "injectEnd",
+          name: "InjectEnd",
           injectionTime: InjectionTime.pageEnd,
+          injectJsScript: "console.log('start run injectEnd');",
           functions: {
             "test": (data) {
               debugPrint("----------->>>injectEnd.test: $data");

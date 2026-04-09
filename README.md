@@ -28,7 +28,7 @@ final WebviewWrapperController controller = WebviewWrapperController();
       controller.addInjectJsObjectList([
         /// call window event oninjectStartReady when inject complete
           InjectJsObject(
-            name: "injectStart",
+            name: "InjectStart",
             injectionTime: InjectionTime.pageStart,
             injectJsScript:"console.log('injectStart');"
             functions: {
@@ -38,7 +38,7 @@ final WebviewWrapperController controller = WebviewWrapperController();
           }),
         /// call window event oninjectEndReady when inject complete
           InjectJsObject(
-            name: "injectEnd",
+            name: "InjectEnd",
             injectionTime: InjectionTime.pageEnd,
             injectJsScript:"console.log('injectEnd');"
             functions: {
@@ -57,14 +57,14 @@ final WebviewWrapperController controller = WebviewWrapperController();
 #### add js window event listener 
 ```javascript
 // when injectStart object script loaded complete
-window.addEventListener('oninjectStartReady', function () {
-    alert('oninjectStartReady')
+window.addEventListener('onInjectStartReady', function () {
+    alert('onInjectStartReady')
 });
 
 
 // when injectEnd object script loaded complete
-window.addEventListener('oninjectEndReady', function () {
-    alert('oninjectEndReady')
+window.addEventListener('onInjectEndReady', function () {
+    alert('onInjectEndReady')
 });
 
 
@@ -113,6 +113,30 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    controller.addInjectJsObjectList([
+      InjectJsObject(
+          name: "InjectStart",
+          injectionTime: InjectionTime.pageStart,
+          injectJsScript: "console.log('start run injectStart');",
+          functions: {
+            "test": (data) {
+              debugPrint(
+                  "----------->>>injectStart.test: $data, ${data.runtimeType}");
+            },
+            "test1": (data) {
+              debugPrint("----------->>>injectStart.test: $data");
+            }
+          }),
+      InjectJsObject(
+          name: "InjectEnd",
+          injectionTime: InjectionTime.pageEnd,
+          injectJsScript: "console.log('start run injectEnd');",
+          functions: {
+            "test": (data) {
+              debugPrint("----------->>>injectEnd.test: $data");
+            }
+          }),
+    ]);
     controller.setJavaScriptMode(JavaScriptMode.unrestricted);
     controller.loadFlutterAsset("assets/test.html");
   }
@@ -131,16 +155,6 @@ class _MyAppState extends State<MyApp> {
                   child: WebviewWrapperWidget(
                 controller: controller,
                 debuggingEnabled: true,
-                injectObjects: [
-                  InjectJsObject(
-                      object: "injectClass",
-                      injectionTime: InjectionTime.pageStart,
-                      functions: {
-                        "test": (data) {
-                          debugPrint("----------->>> $data");
-                        }
-                      }),
-                ],
               )),
               Wrap(
                 children: [
@@ -203,11 +217,11 @@ js example:
         window.addEventListener('onPageEndScriptReady', function () {
             console.log('onPageEndScriptReady')
         });
-        window.addEventListener('oninjectStartReady', function () {
-            console.log('oninjectStartReady')
+        window.addEventListener('onInjectStartReady', function () {
+            console.log('onInjectStartReady')
         });
-        window.addEventListener('oninjectEndReady', function () {
-            console.log('oninjectEndReady')
+        window.addEventListener('onInjectEndReady', function () {
+            console.log('onInjectEndReady')
         });
         function testPromiseOk() {
             return new Promise((resolve, reject) => {
@@ -232,10 +246,10 @@ js example:
         }
 
         function testInjectClassFunction() {
-            injectStart.test();
+            InjectStart.test();
         }
 
         function testInjectEndClassFunction() {
-            injectEnd.test();
+            InjectEnd.test();
         }
 ```

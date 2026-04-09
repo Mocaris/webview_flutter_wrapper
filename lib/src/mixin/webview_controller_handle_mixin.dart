@@ -10,10 +10,10 @@ const String kOnPageStartScriptReadyEvent = "onPageStartScriptReady";
 ///js 脚本页面结束注入后事件
 const String kOnPageEndScriptReadyEvent = "onPageEndScriptReady";
 
-///处理 js 回调
-const String kWebviewHandleJsObject = "_webview_wrapper_bridge";
+///处理 inject object function js 回调
+const String kInjectFuncHandleJsObject = "_webview_wrapper_inject_bridge";
 
-///处理 promise 回调
+///处理 native call js promise 回调
 const String kPromiseHandleJsObject = "_webview_wrapper_promise_bridge";
 
 mixin WebviewControllerHandleMixin on WebViewController {
@@ -80,7 +80,7 @@ mixin WebviewControllerHandleMixin on WebViewController {
       if (null != result) {
         try {
           result = jsonDecode(result);
-        // ignore: empty_catches
+          // ignore: empty_catches
         } catch (e) {}
         completer.complete(result);
         return;
@@ -89,7 +89,7 @@ mixin WebviewControllerHandleMixin on WebViewController {
       if (null != error) {
         try {
           error = jsonDecode(error);
-        // ignore: empty_catches
+          // ignore: empty_catches
         } catch (e) {}
         if (error is Map) {
           completer.completeError(
@@ -141,11 +141,7 @@ mixin WebviewControllerHandleMixin on WebViewController {
         if (inject.name != object) {
           continue;
         }
-        final callback = inject.functions[method];
-        if (null == callback) {
-          continue;
-        }
-        callback.call(param);
+        inject.functions[method]?.call(param);
       }
     } catch (e, s) {
       debugPrintStack(label: e.toString(), stackTrace: s);

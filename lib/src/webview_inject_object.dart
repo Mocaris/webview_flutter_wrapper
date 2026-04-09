@@ -28,7 +28,7 @@ class InjectJsObject {
   final InjectionTime injectionTime;
 
   /// 当前 js 对象开始加载时执行的 js 脚本
-  /// js object inject js script
+  /// run js script when js object inject
   final String? injectJsScript;
 
   /// 注入 js 回调函数

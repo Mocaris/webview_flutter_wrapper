@@ -54,16 +54,13 @@ class InjectJsUtil {
   static String generateInjectJs(InjectJsObject e) {
     final methods = e.functions.entries
         .map((t) =>
-            "${t.key}: function (params) {return _${e.name}_callNative('${t.key}',params);}")
+            "${t.key}: function (params) {return _callNativeFunc('${e.name}','${t.key}',params);}")
         .join(",");
     return """if (window.${e.name} == undefined) {
-  function _${e.name}_callNative(method, params) {
-    return $kWebviewHandleJsObject.postMessage(JSON.stringify({ 'object': '${e.name}', 'method': method, 'params': params }));
-  };
-  window.${e.name} =  { $methods };
+  window.${e.name} = { $methods };
     ${e.injectJsScript != null ? "(function (){${e.injectJsScript}})();" : ''}
-  function _dispatch${e.name}Event() { window.dispatchEvent(new CustomEvent('on${e.name}Ready')); }
-  if (window.document.readyState === 'complete') { _dispatch${e.name}Event(); } else { window.addEventListener("load", _dispatch${e.name}Event); }
+  function _dispatch${e.name}Event() {window.removeEventListener("load", _dispatch${e.name}Event); window.dispatchEvent(new CustomEvent('on${e.name}Ready')); }
+  if (document.readyState === 'complete') { _dispatch${e.name}Event(); } else { window.addEventListener("load", _dispatch${e.name}Event); }
 }""";
   }
 
@@ -72,15 +69,15 @@ class InjectJsUtil {
   /// 注入完成后触发onPageStartScriptReady事件
   static String generatePageStartInjectJs(String source) {
     return """(function _runStartScript() {
-  if (!window || !window.document.readyState) {
-    setTimeout(_runStartScript, 20);
-    return;
+  if (!window || !document) {
+    return setTimeout(_runStartScript, 10);
   }
   if (window.__WRAPPER_INJECT_START__) return;
   window.__WRAPPER_INJECT_START__ = true;
+  ${_generateCommCallbackJs()}
   try { $source; } catch (e) { console.error(e); }
-  function _dispatchEvent() { window.dispatchEvent(new CustomEvent('$kOnPageStartScriptReadyEvent')); }
-  if (window.document.readyState === 'complete') { _dispatchEvent(); } else { window.addEventListener("load", _dispatchEvent); }
+  function _dispatchEvent() {window.removeEventListener("load", _dispatchEvent); window.dispatchEvent(new CustomEvent('$kOnPageStartScriptReadyEvent')); }
+  if (document.readyState === 'complete') { _dispatchEvent(); } else { window.addEventListener("load", _dispatchEvent); }
 })();""";
   }
 
@@ -91,15 +88,22 @@ class InjectJsUtil {
     return """(function () {
   if (window.__WRAPPER_INJECT_END__) return;
   window.__WRAPPER_INJECT_END__ = true;
+  ${_generateCommCallbackJs()}
   function _runEndScript() {
     try { $source; } catch (e) { console.error(e); }
+    window.removeEventListener("load", _runEndScript);
     window.dispatchEvent(new CustomEvent('$kOnPageEndScriptReadyEvent'));
   }
   if (document.readyState !== 'complete') {
-    window.addEventListener("load", _runEndScript);
-    return;
+   return window.addEventListener("load", _runEndScript);
   }
   _runEndScript();
 })();""";
+  }
+
+  static String _generateCommCallbackJs() {
+    return """ function _callNativeFunc(name,method,params){
+    return $kInjectFuncHandleJsObject.postMessage(JSON.stringify({ 'object': name, 'method': method, 'params': params }));
+  }""";
   }
 }

@@ -31,7 +31,7 @@ class WebviewWrapperController extends WebViewController
       onMessageReceived: _handlePromiseMessage,
     );
     super.addJavaScriptChannel(
-      kWebviewHandleJsObject,
+      kInjectFuncHandleJsObject,
       onMessageReceived: _parseInjectCallback,
     );
     super.setNavigationDelegate(_createNavigationDelegate());
@@ -61,7 +61,7 @@ class WebviewWrapperController extends WebViewController
     String name, {
     required void Function(JavaScriptMessage) onMessageReceived,
   }) {
-    assert(name != kWebviewHandleJsObject && name != kPromiseHandleJsObject);
+    assert(name != kInjectFuncHandleJsObject && name != kPromiseHandleJsObject);
     return super.addJavaScriptChannel(
       name,
       onMessageReceived: onMessageReceived,
@@ -70,7 +70,7 @@ class WebviewWrapperController extends WebViewController
 
   @override
   Future<void> removeJavaScriptChannel(String javaScriptChannelName) {
-    assert(javaScriptChannelName != kWebviewHandleJsObject &&
+    assert(javaScriptChannelName != kInjectFuncHandleJsObject &&
         javaScriptChannelName != kPromiseHandleJsObject);
     return super.removeJavaScriptChannel(javaScriptChannelName);
   }

@@ -13,11 +13,11 @@
         window.addEventListener('onPageEndScriptReady', function () {
             console.log('onPageEndScriptReady')
         });
-        window.addEventListener('oninjectStartReady', function () {
-            console.log('oninjectStartReady')
+        window.addEventListener('onInjectStartReady', function () {
+            console.log('onInjectStartReady')
         });
-        window.addEventListener('oninjectEndReady', function () {
-            console.log('oninjectEndReady')
+        window.addEventListener('onInjectEndReady', function () {
+            console.log('onInjectEndReady')
         });
         function testPromiseOk() {
             return new Promise((resolve, reject) => {
@@ -42,11 +42,11 @@
         }
 
         function testInjectClassFunction() {
-            injectStart.test();
+            InjectStart.test();
         }
 
         function testInjectEndClassFunction() {
-            injectEnd.test();
+            InjectEnd.test();
         }
 
     </script>
