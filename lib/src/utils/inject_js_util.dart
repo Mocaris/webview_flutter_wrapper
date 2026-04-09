@@ -58,9 +58,8 @@ class InjectJsUtil {
         .join(",");
     return """if (window.${e.name} == undefined) {
   window.${e.name} = { $methods };
-    ${e.injectJsScript != null ? "(function (){${e.injectJsScript}})();" : ''}
-  function _dispatch${e.name}Event() {window.removeEventListener("load", _dispatch${e.name}Event); window.dispatchEvent(new CustomEvent('on${e.name}Ready')); }
-  if (document.readyState === 'complete') { _dispatch${e.name}Event(); } else { window.addEventListener("load", _dispatch${e.name}Event); }
+  ${e.injectJsScript != null ? "(function (){${e.injectJsScript}})();" : ''}
+  _dispatchEvent('on${e.name}Ready');
 }""";
   }
 
@@ -69,15 +68,12 @@ class InjectJsUtil {
   /// 注入完成后触发onPageStartScriptReady事件
   static String generatePageStartInjectJs(String source) {
     return """(function _runStartScript() {
-  if (!window || !document) {
-    return setTimeout(_runStartScript, 10);
-  }
+  if (!window || !document) {return setTimeout(_runStartScript, 10);}
   if (window.__WRAPPER_INJECT_START__) return;
   window.__WRAPPER_INJECT_START__ = true;
   ${_generateCommCallbackJs()}
   try { $source; } catch (e) { console.error(e); }
-  function _dispatchEvent() {window.removeEventListener("load", _dispatchEvent); window.dispatchEvent(new CustomEvent('$kOnPageStartScriptReadyEvent')); }
-  if (document.readyState === 'complete') { _dispatchEvent(); } else { window.addEventListener("load", _dispatchEvent); }
+  _dispatchEvent('$kOnPageStartScriptReadyEvent');
 })();""";
   }
 
@@ -89,21 +85,17 @@ class InjectJsUtil {
   if (window.__WRAPPER_INJECT_END__) return;
   window.__WRAPPER_INJECT_END__ = true;
   ${_generateCommCallbackJs()}
-  function _runEndScript() {
-    try { $source; } catch (e) { console.error(e); }
-    window.removeEventListener("load", _runEndScript);
-    window.dispatchEvent(new CustomEvent('$kOnPageEndScriptReadyEvent'));
-  }
-  if (document.readyState !== 'complete') {
-   return window.addEventListener("load", _runEndScript);
-  }
-  _runEndScript();
+  try { $source; } catch (e) { console.error(e); }
+  _dispatchEvent('$kOnPageEndScriptReadyEvent');
 })();""";
   }
 
   static String _generateCommCallbackJs() {
-    return """ function _callNativeFunc(name,method,params){
-    return $kInjectFuncHandleJsObject.postMessage(JSON.stringify({ 'object': name, 'method': method, 'params': params }));
-  }""";
+    return """function _callNativeFunc(name,method,params){return $kInjectFuncHandleJsObject.postMessage(JSON.stringify({ 'object': name, 'method': method, 'params': params }));}
+  function _dispatchEvent(event) {
+    function __dispatch() {window.dispatchEvent(new CustomEvent(event));window.removeEventListener("load", __dispatch);}
+    if (document.readyState !== 'complete') {return window.addEventListener("load", __dispatch);}
+    __dispatch();
+}""";
   }
 }
