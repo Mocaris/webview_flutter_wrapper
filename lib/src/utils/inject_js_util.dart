@@ -72,15 +72,14 @@ class InjectJsUtil {
   /// 注入完成后触发onPageStartScriptReady事件
   static String generatePageStartInjectJs(String source) {
     return """(function _runStartScript() {
-  if (!window || !window.document.readyState) {
-    setTimeout(_runStartScript, 20);
-    return;
+  if (!window || !document) {
+    return setTimeout(_runStartScript, 10);
   }
   if (window.__WRAPPER_INJECT_START__) return;
   window.__WRAPPER_INJECT_START__ = true;
   try { $source; } catch (e) { console.error(e); }
   function _dispatchEvent() { window.dispatchEvent(new CustomEvent('$kOnPageStartScriptReadyEvent')); }
-  if (window.document.readyState === 'complete') { _dispatchEvent(); } else { window.addEventListener("load", _dispatchEvent); }
+  if (document.readyState === 'complete') { _dispatchEvent(); } else { window.addEventListener("load", _dispatchEvent); }
 })();""";
   }
 
@@ -96,8 +95,7 @@ class InjectJsUtil {
     window.dispatchEvent(new CustomEvent('$kOnPageEndScriptReadyEvent'));
   }
   if (document.readyState !== 'complete') {
-    window.addEventListener("load", _runEndScript);
-    return;
+   return window.addEventListener("load", _runEndScript);
   }
   _runEndScript();
 })();""";
