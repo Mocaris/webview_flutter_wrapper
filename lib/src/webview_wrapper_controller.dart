@@ -56,12 +56,17 @@ class WebviewWrapperController extends WebViewController
     return _runJavaScriptReturningResult(javaScript);
   }
 
+  /// You can use simpler functions [addInjectJsObjects]
+  @protected
   @override
   Future<void> addJavaScriptChannel(
     String name, {
     required void Function(JavaScriptMessage) onMessageReceived,
   }) {
-    assert(name != kInjectFuncHandleJsObject && name != kPromiseHandleJsObject);
+    if (name == kInjectFuncHandleJsObject && name == kPromiseHandleJsObject) {
+      throw ArgumentError(
+          'The name of the injected object cannot be $kInjectFuncHandleJsObject or $kPromiseHandleJsObject');
+    }
     return super.addJavaScriptChannel(
       name,
       onMessageReceived: onMessageReceived,
@@ -70,42 +75,83 @@ class WebviewWrapperController extends WebViewController
 
   @override
   Future<void> removeJavaScriptChannel(String javaScriptChannelName) {
-    assert(javaScriptChannelName != kInjectFuncHandleJsObject &&
-        javaScriptChannelName != kPromiseHandleJsObject);
+    if (javaScriptChannelName == kInjectFuncHandleJsObject ||
+        javaScriptChannelName == kPromiseHandleJsObject) {
+      throw ArgumentError(
+          'The name of the injected object cannot be $kInjectFuncHandleJsObject or $kPromiseHandleJsObject');
+    }
     return super.removeJavaScriptChannel(javaScriptChannelName);
   }
 
-  /// add inject js object
-  void addInjectJsObjectList(List<InjectJsObject> list) {
-    _injectManager.addInjectJsObjectList(list: list);
+  /// Consider setting a shorter timeout for simple operations and a longer
+  /// timeout for complex asynchronous tasks.
+  /// default timeout is 30 seconds
+  void setJsPromiseTimeout(Duration timeout) {
+    _jsPromiseTimeoutDuration = timeout;
   }
 
-  /// assign all inject js object
-  void assignAllInjectJsObject(List<InjectJsObject> list) {
-    _injectManager.assignAllInjectJsObject(list: list);
+  /// Adds multiple JavaScript objects for injection in a single operation.
+  ///
+  /// This method adds the provided objects to the existing injection list.
+  /// Objects are identified by their keys in the map, allowing easy management
+  /// and removal later.
+  void addInjectJsObjects(
+    Map<String, InjectJsObject> objects,
+  ) {
+    _injectManager.addInjectJsObjects(objects);
   }
 
-  /// remove inject js object
-  void removeInjectJsObject(InjectJsObject object) {
-    _injectManager.removeInjectJsObject(object: object);
+  /// Adds a single JavaScript object for injection.
+  ///
+  /// The [objectName] serves as a unique identifier for later removal or updates.
+  /// The [object] contains the actual injection configuration including timing,
+  /// functions, and optional initialization script.
+  void addInjectJsObject({
+    required String objectName,
+    required InjectJsObject object,
+  }) {
+    _injectManager.addInjectJsObject(objectName: objectName, object: object);
   }
 
-  /// remove inject js object by name
-  void removeInjectJsObjectByName(String objectName) {
-    _injectManager.removeInjectJsObjectByName(objectName: objectName);
+  /// Replaces all existing JavaScript injection objects with the provided ones.
+  ///
+  /// This is useful when you want to completely reset the injection configuration,
+  /// such as when navigating to a completely different section of your app.
+  ///
+  void assignAllInjectJsObject(Map<String, InjectJsObject> objects) {
+    _injectManager.assignAllInjectJsObject(objects: objects);
   }
 
-  /// clear inject js object
+  /// Removes a specific JavaScript injection object by its name.
+  ///
+  /// The removed object will no longer be injected on subsequent page loads.
+  /// Currently loaded pages are not affected.
+  void removeInjectJsObject(String objectName) {
+    _injectManager.removeInjectJsObject(objectName: objectName);
+  }
+
+  /// Removes all JavaScript injection objects.
+  ///
+  /// After calling this method, no custom JavaScript objects will be injected
+  /// on subsequent page loads. This is equivalent to calling both
+  /// [clearStartInjectJsObject] and [clearEndInjectJsObject].
+  ///
   void clearInjectJsObject() {
     _injectManager.clearInjectJsObject();
   }
 
-  /// clear start inject js object
+  /// Removes all JavaScript objects scheduled for injection at page start.
+  ///
+  /// Objects with [InjectionTime.pageStart] will no longer be injected.
+  /// Objects with [InjectionTime.pageEnd] remain unaffected.
   void clearStartInjectJsObject() {
     _injectManager.clearStartInjectJsObject();
   }
 
-  /// clear end inject js object
+  /// Removes all JavaScript objects scheduled for injection at page end.
+  ///
+  /// Objects with [InjectionTime.pageEnd] will no longer be injected.
+  /// Objects with [InjectionTime.pageStart] remain unaffected.
   void clearEndInjectJsObject() {
     _injectManager.clearEndInjectJsObject();
   }

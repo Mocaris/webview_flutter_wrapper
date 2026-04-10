@@ -19,10 +19,6 @@ enum InjectionTime {
 typedef OnJsCallback = void Function(dynamic data);
 
 class InjectJsObject {
-  /// js 对象名称
-  /// inject js object name
-  final String name;
-
   /// 注入时机
   /// js object inject time
   final InjectionTime injectionTime;
@@ -37,7 +33,7 @@ class InjectJsObject {
   final Map<String, OnJsCallback> functions;
 
   const InjectJsObject({
-    required this.name,
+    // required this.name,
     required this.injectionTime,
     this.injectJsScript,
     required this.functions,
@@ -45,41 +41,43 @@ class InjectJsObject {
 }
 
 class InjectObjectManager {
-  final Set<InjectJsObject> injectObjects = {};
+  final Map<String, InjectJsObject> injectObjects = {};
 
   String _startInjectSource = "";
 
   String get startInjectJsScript => _startInjectSource;
+
   String _endInjectSource = "";
 
   String get endInjectJsScript => _endInjectSource;
 
   void assignAllInjectJsObject({
-    required Iterable<InjectJsObject> list,
+    required Map<String, InjectJsObject> objects,
   }) {
     injectObjects.clear();
-    injectObjects.addAll(list);
+    injectObjects.addAll(objects);
     _updateInjectJs();
   }
 
-  void addInjectJsObjectList({
-    required Iterable<InjectJsObject> list,
+  void addInjectJsObjects(
+    Map<String, InjectJsObject> objects,
+  ) {
+    injectObjects.addAll(objects);
+    _updateInjectJs();
+  }
+
+  void addInjectJsObject({
+    required String objectName,
+    required InjectJsObject object,
   }) {
-    injectObjects.addAll(list);
+    injectObjects[objectName] = object;
     _updateInjectJs();
   }
 
   void removeInjectJsObject({
-    required InjectJsObject object,
-  }) {
-    injectObjects.remove(object);
-    _updateInjectJs();
-  }
-
-  void removeInjectJsObjectByName({
     required String objectName,
   }) {
-    injectObjects.removeWhere((element) => element.name == objectName);
+    injectObjects.remove(objectName);
     _updateInjectJs();
   }
 
@@ -90,29 +88,29 @@ class InjectObjectManager {
 
   void clearStartInjectJsObject() {
     injectObjects.removeWhere(
-        (element) => element.injectionTime == InjectionTime.pageStart);
+        (name, element) => element.injectionTime == InjectionTime.pageStart);
     _updateInjectJs();
   }
 
   void clearEndInjectJsObject() {
     injectObjects.removeWhere(
-        (element) => element.injectionTime == InjectionTime.pageEnd);
+        (name, element) => element.injectionTime == InjectionTime.pageEnd);
     _updateInjectJs();
   }
 
   void _updateInjectJs() {
-    var startList =
-        injectObjects.where((e) => e.injectionTime == InjectionTime.pageStart);
+    var startList = injectObjects.entries
+        .where((e) => e.value.injectionTime == InjectionTime.pageStart);
     var startInjectObjectJs = startList.map((e) {
-      return InjectJsUtil.generateInjectJs(e);
+      return InjectJsUtil.generateInjectJs(e.key, e.value);
     }).join("\n");
     _startInjectSource =
         InjectJsUtil.generatePageStartInjectJs(startInjectObjectJs);
 
-    var endList =
-        injectObjects.where((e) => e.injectionTime == InjectionTime.pageEnd);
+    var endList = injectObjects.entries
+        .where((e) => e.value.injectionTime == InjectionTime.pageEnd);
     var endInjectObjectJs = endList.map((e) {
-      return InjectJsUtil.generateInjectJs(e);
+      return InjectJsUtil.generateInjectJs(e.key, e.value);
     }).join("\n");
     _endInjectSource = InjectJsUtil.generatePageEndInjectJs(endInjectObjectJs);
   }

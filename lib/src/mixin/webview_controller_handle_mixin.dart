@@ -16,10 +16,16 @@ const String kInjectFuncHandleJsObject = "_webview_wrapper_inject_bridge";
 ///处理 native call js promise 回调
 const String kPromiseHandleJsObject = "_webview_wrapper_promise_bridge";
 
+/// Default timeout for JavaScript promises (in milliseconds)
+const Duration kDefaultPromiseTimeout = Duration(milliseconds: 30000);
+
 mixin WebviewControllerHandleMixin on WebViewController {
   var _completerFunCount = 0;
   final _promiseCompleterCache = <String, Completer>{};
   final _injectManager = InjectObjectManager();
+
+  /// run js and return timeout
+  Duration? _jsPromiseTimeoutDuration;
 
   NavigationDelegate _createNavigationDelegate(
       {NavigationDelegateWrapper? wrapper}) {
@@ -121,28 +127,40 @@ mixin WebviewControllerHandleMixin on WebViewController {
     final javaScriptSource = InjectJsUtil.generateRunJsPromise(
         funcId: funcId, javaScript: javaScript);
     platform.runJavaScript(javaScriptSource);
+    _checkPromiseTimeout(funcId);
     return completer.future;
+  }
+
+  void _checkPromiseTimeout(String funcId) {
+    Timer(_jsPromiseTimeoutDuration ?? kDefaultPromiseTimeout, () {
+      var completer = _promiseCompleterCache.remove(funcId);
+      if (null == completer || completer.isCompleted) {
+        return;
+      }
+      completer.completeError(TimeoutException(
+        'JavaScript execution timed out after ${_jsPromiseTimeoutDuration ?? kDefaultPromiseTimeout.inMilliseconds}ms',
+        _jsPromiseTimeoutDuration ?? kDefaultPromiseTimeout,
+      ));
+    });
   }
 
   void _parseInjectCallback(JavaScriptMessage message) async {
     try {
-      final injectList = _injectManager.injectObjects;
       var callData = jsonDecode(message.message) as Map<String, dynamic>;
       final object = callData['object'];
       if (null == object) {
-        return;
+        throw "inject object is null";
+      }
+      var jsObject = _injectManager.injectObjects[object];
+      if (null == jsObject) {
+        throw "inject object $object not found";
       }
       final method = callData['method'];
       if (null == method) {
-        return;
+        throw "inject method is null";
       }
       var param = callData['params'];
-      for (var inject in injectList) {
-        if (inject.name != object) {
-          continue;
-        }
-        inject.functions[method]?.call(param);
-      }
+      jsObject.functions[method]?.call(param);
     } catch (e, s) {
       debugPrintStack(label: e.toString(), stackTrace: s);
     }

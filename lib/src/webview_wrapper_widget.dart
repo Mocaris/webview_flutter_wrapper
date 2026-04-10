@@ -75,7 +75,8 @@ extension WebviewWrapperStateExt on WebviewWrapperWidgetState {
         final WebKitWebViewController webKitController =
             widget.controller.platform as WebKitWebViewController;
         webKitController.setInspectable(widget.debuggingEnabled);
-      } else if (WebViewPlatform.instance is AndroidWebViewPlatform) {
+      }
+      if (WebViewPlatform.instance is AndroidWebViewPlatform) {
         AndroidWebViewController.enableDebugging(widget.debuggingEnabled);
       }
     }

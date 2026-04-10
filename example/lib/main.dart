@@ -18,9 +18,8 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    controller.addInjectJsObjectList([
-      InjectJsObject(
-          name: "InjectStart",
+    controller.assignAllInjectJsObject({
+      "InjectStart": InjectJsObject(
           injectionTime: InjectionTime.pageStart,
           injectJsScript: "console.log('start run injectStart');",
           functions: {
@@ -32,8 +31,7 @@ class _MyAppState extends State<MyApp> {
               debugPrint("----------->>>injectStart.test: $data");
             }
           }),
-      InjectJsObject(
-          name: "InjectEnd",
+      "InjectEnd": InjectJsObject(
           injectionTime: InjectionTime.pageEnd,
           injectJsScript: "console.log('start run injectEnd');",
           functions: {
@@ -41,7 +39,7 @@ class _MyAppState extends State<MyApp> {
               debugPrint("----------->>>injectEnd.test: $data");
             }
           }),
-    ]);
+    });
     controller.setJavaScriptMode(JavaScriptMode.unrestricted);
     controller.loadFlutterAsset("assets/test.html");
   }

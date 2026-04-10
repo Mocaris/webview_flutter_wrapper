@@ -51,15 +51,15 @@ class InjectJsUtil {
 
   /// 生成注入的js
   /// 注入完成后触发on${InjectJsObject.name}Ready事件
-  static String generateInjectJs(InjectJsObject e) {
+  static String generateInjectJs(String name, InjectJsObject e) {
     final methods = e.functions.entries
         .map((t) =>
-            "${t.key}: function (params) {return _callNativeFunc('${e.name}','${t.key}',params);}")
+            "${t.key}: function (params) {return _callNativeFunc('$name','${t.key}',params);}")
         .join(",");
-    return """if (window.${e.name} == undefined) {
-  window.${e.name} = { $methods };
+    return """if (window.$name == undefined) {
+  window.$name = { $methods };
   ${e.injectJsScript != null ? "(function (){${e.injectJsScript}})();" : ''}
-  _dispatchEvent('on${e.name}Ready');
+  _dispatchEvent('on${name}Ready');
 }""";
   }
 
