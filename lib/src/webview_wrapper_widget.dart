@@ -17,17 +17,60 @@ import 'webview_inject_object.dart';
 part 'mixin/webview_controller_handle_mixin.dart';
 part 'webview_wrapper_controller.dart';
 
-/// WebviewWrapper
+/// Enhanced WebView widget with advanced JavaScript integration capabilities.
+///
+/// [WebviewWrapperWidget] is a stateful widget that wraps the base [WebViewWidget]
+/// to provide enhanced functionality including:
+/// - Automatic JavaScript injection at different page lifecycle stages
+/// - Bidirectional JavaScript-Native communication
+/// - Promise-based JavaScript execution support
+/// - Platform-specific debugging controls
+/// - Gesture recognition customization
+///
+/// This widget manages the lifecycle of [WebviewWrapperController] and ensures
+/// proper initialization and cleanup of JavaScript injection infrastructure.
+///
 /// @Author mocaris
 /// @Date 2026-02-04
-/// @Since
-
+/// @Since 0.0.1
 class WebviewWrapperWidget extends StatefulWidget {
+  /// The controller that manages the WebView and JavaScript injection.
+  ///
+  /// This controller provides methods for:
+  /// - Executing JavaScript with Promise support
+  /// - Managing JavaScript injection objects
+  /// - Handling navigation events
+  /// - Controlling WebView behavior
   final WebviewWrapperController controller;
+
+  /// The text direction for laying out child widgets.
+  ///
+  /// Defaults to [TextDirection.ltr] (left-to-right).
+  /// Set to [TextDirection.rtl] for right-to-left languages.
   final TextDirection layoutDirection;
+
+  /// Which gestures should be consumed by the WebView.
+  ///
+  /// This is useful when you want the WebView to handle specific gestures
+  /// while allowing other gestures to be handled by parent widgets.
   final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers;
+
+  /// Whether to enable debugging features for the WebView.
+  ///
+  /// When enabled:
+  /// - On iOS/macOS: Sets the web view as inspectable in Safari Web Inspector
+  /// - On Android: Enables Chrome DevTools remote debugging
+  ///
+  /// Recommended to enable only in debug mode for security reasons.
   final bool debuggingEnabled;
 
+  /// Creates a [WebviewWrapperWidget] instance.
+  ///
+  /// Parameters:
+  /// - [controller]: Required. The controller for managing the WebView.
+  /// - [layoutDirection]: Optional. Text direction for layout (default: ltr).
+  /// - [gestureRecognizers]: Optional. Set of gesture recognizers (default: empty set).
+  /// - [debuggingEnabled]: Optional. Whether to enable debugging (default: false).
   const WebviewWrapperWidget({
     super.key,
     required this.controller,

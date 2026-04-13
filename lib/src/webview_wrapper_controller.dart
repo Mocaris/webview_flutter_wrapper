@@ -45,9 +45,31 @@ class WebviewWrapperController extends WebViewController
   @override
   @protected
   Future<void> setNavigationDelegate(NavigationDelegate delegate) {
-    return super.setNavigationDelegate(delegate);
+    var delegate0 = delegate;
+    if (delegate is NavigationDelegateWrapper) {
+      delegate0 = _createNavigationDelegate(wrapper: delegate);
+    }
+    return super.setNavigationDelegate(delegate0);
   }
 
+  /// Sets an enhanced navigation delegate with extended lifecycle callbacks.
+  ///
+  /// This method provides a more powerful alternative to [setNavigationDelegate] by using
+  /// [NavigationDelegateWrapper], which offers additional callbacks and better integration
+  /// with the JavaScript injection system.
+  ///
+  /// The wrapper automatically handles:
+  /// - JavaScript injection at appropriate page lifecycle stages
+  /// - Event dispatching for injection readiness
+  /// - Navigation state management
+  /// - Page load progress tracking
+  ///
+  /// Parameters:
+  /// - [delegate]: The navigation delegate wrapper containing enhanced callbacks
+  ///   for navigation events, page loading states, and JavaScript injection hooks.
+  /// See also:
+  /// - [NavigationDelegateWrapper] for available callback options
+  /// - [setNavigationDelegate] for the basic version (deprecated)
   Future<void> setNavigationDelegateWrapper(
       NavigationDelegateWrapper delegate) {
     return super
