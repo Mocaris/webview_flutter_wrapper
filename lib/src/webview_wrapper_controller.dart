@@ -7,9 +7,9 @@ part of 'webview_wrapper_widget.dart';
 
 class WebviewWrapperController extends WebViewController
     with WebviewControllerHandleMixin {
-  WebviewWrapperController(
-      {void Function(WebViewPermissionRequest request)? onPermissionRequest})
-      : this.fromPlatformCreationParams(
+  WebviewWrapperController({
+    void Function(WebViewPermissionRequest request)? onPermissionRequest,
+  }) : this.fromPlatformCreationParams(
           const PlatformWebViewControllerCreationParams(),
           onPermissionRequest: onPermissionRequest,
         );
@@ -23,16 +23,20 @@ class WebviewWrapperController extends WebViewController
         );
 
   WebviewWrapperController.fromPlatform(
-    PlatformWebViewController platform, {
-    void Function(WebViewPermissionRequest request)? onPermissionRequest,
-  }) {
+    super.platform, {
+    super.onPermissionRequest,
+  }) : super.fromPlatform() {
     super.addJavaScriptChannel(
       kPromiseHandleJsObject,
       onMessageReceived: _handlePromiseMessage,
     );
     super.addJavaScriptChannel(
       kInjectFuncHandleJsObject,
-      onMessageReceived: _parseInjectCallback,
+      onMessageReceived: _parseInjectFuncCallback,
+    );
+    super.addJavaScriptChannel(
+      kInjectEventHandleJsObject,
+      onMessageReceived: _parseInjectEventCallback,
     );
     super.setNavigationDelegate(_createNavigationDelegate());
   }
@@ -50,10 +54,35 @@ class WebviewWrapperController extends WebViewController
         .setNavigationDelegate(_createNavigationDelegate(wrapper: delegate));
   }
 
-  /// This method is compatible with calling the js function to return the promise type
+  /// use [runJavaScriptReturningResultWithTimeout] with custom timeout
   @override
   Future<Object> runJavaScriptReturningResult(String javaScript) {
     return _runJavaScriptReturningResult(javaScript);
+  }
+
+  /// Executes JavaScript code and returns the result with custom timeout support.
+  ///
+  /// This method extends [runJavaScriptReturningResult] by allowing you to specify
+  /// a custom timeout duration for JavaScript execution. It supports both synchronous
+  /// return values and asynchronous Promises.
+  ///
+  /// Parameters:
+  /// - [javaScript]: The JavaScript code to execute in the WebView.
+  /// - [timeout]: Optional custom timeout duration. If not provided, uses
+  ///   [kDefaultPromiseTimeout] (default 30 seconds).
+  ///
+  /// Returns a [Future] that completes with the JavaScript execution result.
+  /// The result can be of various types depending on what the JavaScript returns.
+  ///
+  /// Throws:
+  /// - [TimeoutException] if the JavaScript execution exceeds the specified timeout.
+  /// - [PlatformException] if there's an error executing the JavaScript.
+  ///
+  Future<Object> runJavaScriptReturningResultWithTimeout(
+    String javaScript, {
+    Duration? timeout,
+  }) {
+    return _runJavaScriptReturningResult(javaScript, timeout: timeout);
   }
 
   /// You can use simpler functions [addInjectJsObjects]
@@ -63,9 +92,11 @@ class WebviewWrapperController extends WebViewController
     String name, {
     required void Function(JavaScriptMessage) onMessageReceived,
   }) {
-    if (name == kInjectFuncHandleJsObject && name == kPromiseHandleJsObject) {
+    if (name == kInjectFuncHandleJsObject ||
+        name == kInjectEventHandleJsObject ||
+        name == kPromiseHandleJsObject) {
       throw ArgumentError(
-          'The name of the injected object cannot be $kInjectFuncHandleJsObject or $kPromiseHandleJsObject');
+          'The name of the injected object cannot be $kInjectFuncHandleJsObject or $kInjectEventHandleJsObject or $kPromiseHandleJsObject');
     }
     return super.addJavaScriptChannel(
       name,
@@ -76,18 +107,12 @@ class WebviewWrapperController extends WebViewController
   @override
   Future<void> removeJavaScriptChannel(String javaScriptChannelName) {
     if (javaScriptChannelName == kInjectFuncHandleJsObject ||
+        javaScriptChannelName == kInjectEventHandleJsObject ||
         javaScriptChannelName == kPromiseHandleJsObject) {
       throw ArgumentError(
-          'The name of the injected object cannot be $kInjectFuncHandleJsObject or $kPromiseHandleJsObject');
+          'The name of the injected object cannot be $kInjectFuncHandleJsObject or $kInjectEventHandleJsObject or $kPromiseHandleJsObject');
     }
     return super.removeJavaScriptChannel(javaScriptChannelName);
-  }
-
-  /// Consider setting a shorter timeout for simple operations and a longer
-  /// timeout for complex asynchronous tasks.
-  /// default timeout is 30 seconds
-  void setJsPromiseTimeout(Duration timeout) {
-    _jsPromiseTimeoutDuration = timeout;
   }
 
   /// Adds multiple JavaScript objects for injection in a single operation.

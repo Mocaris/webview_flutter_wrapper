@@ -21,7 +21,9 @@ class _MyAppState extends State<MyApp> {
     controller.assignAllInjectJsObject({
       "InjectStart": InjectJsObject(
           injectionTime: InjectionTime.pageStart,
-          injectJsScript: "console.log('start run injectStart');",
+          onInjectedReady: () {
+            print("----------->>>InjectStart ready");
+          },
           functions: {
             "test": (data) {
               debugPrint(
@@ -33,7 +35,9 @@ class _MyAppState extends State<MyApp> {
           }),
       "InjectEnd": InjectJsObject(
           injectionTime: InjectionTime.pageEnd,
-          injectJsScript: "console.log('start run injectEnd');",
+          onInjectedReady: () {
+            print("----------->>>InjectEnd ready");
+          },
           functions: {
             "test": (data) {
               debugPrint("----------->>>injectEnd.test: $data");

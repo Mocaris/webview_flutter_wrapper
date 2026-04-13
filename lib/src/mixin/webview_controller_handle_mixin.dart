@@ -4,14 +4,12 @@
 /// @Since
 part of '../webview_wrapper_widget.dart';
 
-///js 脚本页面开始注入后事件
-const String kOnPageStartScriptReadyEvent = "onPageStartScriptReady";
-
-///js 脚本页面结束注入后事件
-const String kOnPageEndScriptReadyEvent = "onPageEndScriptReady";
-
 ///处理 inject object function js 回调
-const String kInjectFuncHandleJsObject = "_webview_wrapper_inject_bridge";
+const String kInjectFuncHandleJsObject = "_webview_wrapper_inject_func_bridge";
+
+///处理 inject object event js 回调
+const String kInjectEventHandleJsObject =
+    "_webview_wrapper_inject_event_bridge";
 
 ///处理 native call js promise 回调
 const String kPromiseHandleJsObject = "_webview_wrapper_promise_bridge";
@@ -23,9 +21,6 @@ mixin WebviewControllerHandleMixin on WebViewController {
   var _completerFunCount = 0;
   final _promiseCompleterCache = <String, Completer>{};
   final _injectManager = InjectObjectManager();
-
-  /// run js and return timeout
-  Duration? _jsPromiseTimeoutDuration;
 
   NavigationDelegate _createNavigationDelegate(
       {NavigationDelegateWrapper? wrapper}) {
@@ -120,31 +115,34 @@ mixin WebviewControllerHandleMixin on WebViewController {
   }
 
   /// 执行 js 并返回结果  支持 promise
-  Future<Object> _runJavaScriptReturningResult(String javaScript) {
+  Future<Object> _runJavaScriptReturningResult(
+    String javaScript, {
+    Duration? timeout,
+  }) {
     final funcId =
         "${DateTime.now().millisecondsSinceEpoch}_${++_completerFunCount}";
     final completer = _promiseCompleterCache[funcId] = Completer<Object>();
-    final javaScriptSource = InjectJsUtil.generateRunJsPromise(
+    final javaScriptSource = InjectJsUtil.generateJsWithResultOrPromise(
         funcId: funcId, javaScript: javaScript);
     platform.runJavaScript(javaScriptSource);
-    _checkPromiseTimeout(funcId);
+    _checkPromiseTimeout(funcId, timeout ?? kDefaultPromiseTimeout);
     return completer.future;
   }
 
-  void _checkPromiseTimeout(String funcId) {
-    Timer(_jsPromiseTimeoutDuration ?? kDefaultPromiseTimeout, () {
+  void _checkPromiseTimeout(String funcId, Duration timeout) {
+    Timer(timeout, () {
       var completer = _promiseCompleterCache.remove(funcId);
       if (null == completer || completer.isCompleted) {
         return;
       }
       completer.completeError(TimeoutException(
-        'JavaScript execution timed out after ${_jsPromiseTimeoutDuration ?? kDefaultPromiseTimeout.inMilliseconds}ms',
-        _jsPromiseTimeoutDuration ?? kDefaultPromiseTimeout,
+        'JavaScript execution timed out after ${timeout.inMilliseconds}ms',
+        timeout,
       ));
     });
   }
 
-  void _parseInjectCallback(JavaScriptMessage message) async {
+  void _parseInjectFuncCallback(JavaScriptMessage message) async {
     try {
       var callData = jsonDecode(message.message) as Map<String, dynamic>;
       final object = callData['object'];
@@ -159,8 +157,37 @@ mixin WebviewControllerHandleMixin on WebViewController {
       if (null == method) {
         throw "inject method is null";
       }
+      final function = jsObject.functions[method];
+      if (null == function) {
+        throw "inject function $method not found";
+      }
       var param = callData['params'];
-      jsObject.functions[method]?.call(param);
+      function.call(param);
+    } catch (e, s) {
+      debugPrintStack(label: e.toString(), stackTrace: s);
+    }
+  }
+
+  void _parseInjectEventCallback(JavaScriptMessage message) async {
+    try {
+      var callData = jsonDecode(message.message) as Map<String, dynamic>;
+      final object = callData['object'];
+      if (null == object) {
+        throw "inject object is null";
+      }
+      var jsObject = _injectManager.injectObjects[object];
+      if (null == jsObject) {
+        throw "inject object $object not found";
+      }
+      // var param = callData['params'];
+      final event = callData['event'];
+      if (null != event) {
+        switch (event) {
+          case JsBridgeEvents.onInjectObjectReady:
+            jsObject.onInjectedReady?.call();
+            break;
+        }
+      }
     } catch (e, s) {
       debugPrintStack(label: e.toString(), stackTrace: s);
     }

@@ -10,6 +10,7 @@ import 'package:webview_flutter_platform_interface/webview_flutter_platform_inte
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:webview_flutter_wrapper/src/utils/inject_js_util.dart';
 
+import 'constant/js_bridge_events.dart';
 import 'navigation_delegate_wrapper.dart';
 import 'webview_inject_object.dart';
 

@@ -59,7 +59,9 @@ class _MyAppState extends State<MyApp> {
       // you can listen onNativeBridgeReady in js
       "NativeBridge": InjectJsObject(
           injectionTime: InjectionTime.pageEnd,
-          injectJsScript: "console.log('NativeBridge is ready');",
+          onInjectedReady: () {
+            print("----------->>>NativeBridge ready");
+          },
           functions: {
             "sendMessage": (data) {
               debugPrint("Received from JS: $data");
@@ -101,7 +103,9 @@ The plugin supports two injection timing options:
 // you can listen onEarlyBirdReady in js
 "EarlyBird": InjectJsObject(
   injectionTime: InjectionTime.pageStart,
-  injectJsScript: "console.log('Early injection');",
+  onInjectedReady: () {
+    print("----------->>>EarlyBird ready");
+  },
   functions: {
     "earlyCall": (data) => debugPrint("Early call: $data"),
   }),
@@ -109,7 +113,9 @@ The plugin supports two injection timing options:
 // you can listen onLateComerReady in js
 "LateComer": InjectJsObject(
   injectionTime: InjectionTime.pageEnd,
-  injectJsScript: "console.log('Late injection');",
+  onInjectedReady: () {
+    print("----------->>>LateComer ready");
+  },
   functions: {
     "lateCall": (data) => debugPrint("Late call: $data"),
   }),}
