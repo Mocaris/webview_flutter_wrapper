@@ -1,10 +1,28 @@
 part of 'webview_wrapper_widget.dart';
 
-/// extension for [WebViewController]
+/// Enhanced WebView controller with advanced JavaScript integration capabilities.
+///
+/// [WebviewWrapperController] extends the base [WebViewController] to provide:
+/// - JavaScript Promise support for async operations
+/// - Bidirectional JavaScript-Native communication via injection objects
+/// - Custom timeout control for JavaScript execution
+/// - Automatic JavaScript injection at different page lifecycle stages
+/// - Protected internal channels for framework functionality
+///
+/// This controller manages JavaScript injection objects that enable seamless
+/// communication between Flutter and WebView content. It supports both
+/// synchronous and asynchronous JavaScript execution with proper error handling.
+///
+/// Key features:
+/// - **Promise Support**: Execute JavaScript that returns Promises and await results
+/// - **Object Injection**: Inject JavaScript objects with callable Native methods
+/// - **Lifecycle Management**: Inject scripts at page start or page end
+/// - **Timeout Control**: Customize execution timeout for JavaScript operations
+/// - **Event System**: Listen to injection ready events and page load states
+///
 /// @Author mocaris
 /// @Date 2026-02-04
-/// @Since
-
+/// @Since 0.0.1
 class WebviewWrapperController extends WebViewController
     with WebviewControllerHandleMixin {
   WebviewWrapperController({
